@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
     <title>cyii.site</title>
 
     <style>
-        a {
-            color: blue;
-            text-decoration: none;
-            transition: .3s;
+        * {
+            color: lawngreen;
         }
-        a:hover {
-            text-decoration: underline;
+
+
+        a {
+            --color-underline: cyan;
+            color: cyan;
+        }
+
+
+        li::marker {
+            color: yellow;
         }
 
         html,
@@ -22,20 +29,120 @@
         }
         body {
             margin: 0;
+            min-width: 20rem;
             display: flex;
             flex-direction: column;
+            background: url("波奇-流汗.jpeg") no-repeat left top;
+            background-color: beige;
+            background-size: 100% 100%;
+            background-attachment: fixed;
+            background-blend-mode: multiply;
+        }
+
+        header {
+            z-index: 99;
+            position: sticky;
+            top: 0;
+        }
+
+        nav {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0px 1px 5px 2px rgba(255, 192, 203, 0.5);
+
+            box-sizing: border-box;
+            padding: 1em;
         }
 
         main {
+            position: relative;
             flex: 1;
             box-sizing: border-box;
             padding: 2em;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        section {
+            width: fit-content;
+            min-width: 18rem;
+        }
+
+        .copyright {
+            text-align: center;
+            color: white;
+        }
+
+
+        .波奇 {
+            --width: 20rem;
+            --height: 15rem;
+
+            width: var(--width);
+            height: var(--height);
+            background: url("波奇-抖.gif"), pink;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            background-blend-mode: color-burn;
+            mix-blend-mode: multiply;
+            filter: contrast(5);
+        }
+
+        .青蛙 {
+            --size: 10rem;
+
+            display: none;
+            margin-top: 2em;
+            width: var(--size);
+            height: var(--size);
+            background: url("青蛙.gif"), skyblue;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            background-blend-mode: lighten;
+            mix-blend-mode: multiply;
+            filter: contrast(5);
+            /* animation: 青蛙抖动 30ms infinite ease-in-out; */
+        }
+        .青蛙::after {
+            content: " ";
+            display: block;
+            width: var(--size);
+            height: var(--size);
+            background: url("青蛙.gif"), greenyellow;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            mix-blend-mode: multiply;
+            transform: translate(calc(-1 * var(--size) / 30), calc(-1 * var(--size) / 30)), rotate(var(--size));
+        }
+        @keyframes 青蛙抖动 {
+            50% {
+                transform: translate(calc(var(--size) / 30), calc(-1 * var(--size) / 30));
+            }
+            100% {
+                transform: translate(calc(-1 * var(--size) / 30), calc(var(--size) / 30));
+            }
+        }
+        @media (min-width: 30rem) {
+            .青蛙 {
+                display: block;
+                margin-top: 0;
+                position: absolute;
+                right: 10%;
+                top: 5%;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-
+        <nav>
+            <h1 style="color: black;">
+                cyii.site
+            </h1>
+        </nav>
     </header>
 
     <main>
@@ -66,11 +173,16 @@
                 <li>nothing here</li>
             </ul>
         </section>
+
+        <section>
+            <div class="波奇"></div>
+            <div class="青蛙"></div>
+        </section>
     </main>
 
     <footer>
         <hr/>
-        <p style="text-align: center;">
+        <p class="copyright">
             &copy; 2024 尘跃
         </p>
     </footer>

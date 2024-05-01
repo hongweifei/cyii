@@ -1,0 +1,16 @@
+
+a {
+    --color-underline: blue;
+    color: var(--color-underline);
+    background: linear-gradient(to right, var(--color-underline), var(--color-underline)) no-repeat;
+    background-position: left bottom;
+    background-size: 0px 2px;
+    transition: .3s;
+    text-decoration: none;
+    /* text-underline-offset: 0.2em; */
+}
+a:hover {
+    background-size: 100% 2px;
+    text-decoration: none !important;
+}
+
