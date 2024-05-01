@@ -4,6 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>cyii.site</title>
+
+    <style>
+        a {
+            color: blue;
+            text-decoration: none;
+            transition: .3s;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+            box-sizing: border-box;
+            padding: 2em;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -11,29 +39,40 @@
     </header>
 
     <main>
-        <div>
+        <p>
+            欢迎访问我的个人站点
+            <a href="http://cyue.net" target="_blank">cyue.net</a>
+        </p>
+
+        <section>
             <h3>组件相关</h3>
-            <div>
-                <a href="component/水印.html">水印</a>
-            </div>
-        </div>
+            <ul>
+                <li>
+                    <a href="component/水印.html">水印</a>
+                </li>
+            </ul>
+        </section>
 
-        <div>
+        <section>
             <h3>效果相关</h3>
-            <div>
+            <ul>
+                <li>nothing here</li>
+            </ul>
+        </section>
 
-            </div>
-        </div>
-
-        <div>
+        <section>
             <h3>工具类</h3>
-            <div>
-            </div>
-        </div>
+            <ul>
+                <li>nothing here</li>
+            </ul>
+        </section>
     </main>
 
     <footer>
-
+        <hr/>
+        <p style="text-align: center;">
+            &copy; 2024 尘跃
+        </p>
     </footer>
 </body>
 </html>
