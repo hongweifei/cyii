@@ -14,6 +14,7 @@
         }
         body {
             margin: 0;
+            background-color: white;
             display: flex;
             flex-direction: column;
         }
@@ -103,7 +104,78 @@
                 /** @type { HTMLElement } */
                 this.div = undefined;
                 this.style.position = "relative";
-                this.reset水印();
+
+                // 放里头增加安全性
+                const reset水印 = () => {
+                    if (this.div) {
+                        this.div.remove();
+                    }
+
+                    const 水印内容 = this.dataset.text;
+                    if (!水印内容) {
+                        return;
+                    }
+                    let fontSize = 24;
+                    if (this.dataset.size) {
+                        try {
+                            fontSize = parseFloat(this.dataset.size);
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+                    let textGap = fontSize;
+                    if (this.dataset.gap) {
+                        try {
+                            textGap = parseFloat(this.dataset.gap);
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+
+                    function draw水印(parentElement, {drawText, fontSize = 24, gap = 24}) {
+                        const parentRectangle = parentElement.getBoundingClientRect();
+                        const canvas = document.createElement("canvas");
+                        canvas.width = parentRectangle.width;
+                        canvas.height = parentRectangle.height;
+
+                        const ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "gray";
+                        ctx.font = `${fontSize}px bold`;
+                        const textMeasure = ctx.measureText(drawText);
+                        const xDistance = textMeasure.width + gap;
+                        const yDistance = fontSize + gap;
+                        ctx.rotate(-45 * Math.PI / 180);
+                        const rowCount = Math.ceil(canvas.width / fontSize);
+                        const columnCount = Math.ceil(canvas.height / fontSize) + rowCount;
+                        const x偏移 = -xDistance * rowCount / 4;
+                        const y偏移 = -yDistance * 0.5;
+                        for(let i = 0; i < columnCount; i++) {
+                            for(let j = 0; j < rowCount; j++) {
+                                ctx.fillText(drawText, j * xDistance +  x偏移, i * yDistance + y偏移);
+                            }
+                        }
+                        return canvas.toDataURL();
+                    }
+                    const imgURL = draw水印(this, {
+                        drawText: 水印内容,
+                        fontSize,
+                        gap: textGap
+                    });
+
+                    const div = document.createElement("div");
+                    div.style.zIndex = "-1";
+                    div.style.position = "absolute";
+                    div.style.left = 0;
+                    div.style.top = 0;
+                    div.style.width = "100%";
+                    div.style.height = "100%";
+                    div.style.background = `url("${imgURL}")`;
+                    div.style.opacity = "0.8";
+
+                    this.div = div;
+                    this.appendChild(this.div);
+                }
+                reset水印();
 
                 new MutationObserver((records) => {
                     console.log(records);
@@ -111,13 +183,13 @@
                         // 删除
                         for(const node of record.removedNodes) {
                             if (node === this.div) {
-                                this.reset水印();
+                                reset水印();
                             }
                         }
 
                         // 改样式
                         if (record.attributeName === "style") {
-                            this.reset水印();
+                            reset水印();
                         }
                     }
                 }).observe(this, {
@@ -125,76 +197,6 @@
                     childList: true,
                     subtree: true,
                 });
-            }
-
-            reset水印() {
-                if (this.div) {
-                    this.div.remove();
-                }
-
-                const 水印内容 = this.dataset.text;
-                if (!水印内容) {
-                    return;
-                }
-                let fontSize = 24;
-                if (this.dataset.size) {
-                    try {
-                        fontSize = parseFloat(this.dataset.size);
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }
-                let textGap = fontSize;
-                if (this.dataset.gap) {
-                    try {
-                        textGap = parseFloat(this.dataset.gap);
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }
-
-                function draw水印(parentElement, {drawText, fontSize = 24, gap = 24}) {
-                    const parentRectangle = parentElement.getBoundingClientRect();
-                    const canvas = document.createElement("canvas");
-                    canvas.width = parentRectangle.width;
-                    canvas.height = parentRectangle.height;
-
-                    const ctx = canvas.getContext("2d");
-                    ctx.fillStyle = "gray";
-                    ctx.font = `${fontSize}px bold`;
-                    const textMeasure = ctx.measureText(drawText);
-                    const xDistance = textMeasure.width + gap;
-                    const yDistance = fontSize + gap;
-                    ctx.rotate(-45 * Math.PI / 180);
-                    const rowCount = Math.ceil(canvas.width / fontSize);
-                    const columnCount = Math.ceil(canvas.height / fontSize) + rowCount;
-                    const x偏移 = -xDistance * rowCount / 4;
-                    const y偏移 = -yDistance * 0.5;
-                    for(let i = 0; i < columnCount; i++) {
-                        for(let j = 0; j < rowCount; j++) {
-                            ctx.fillText(drawText, j * xDistance +  x偏移, i * yDistance + y偏移);
-                        }
-                    }
-                    return canvas.toDataURL();
-                }
-                const imgURL = draw水印(this, {
-                    drawText: 水印内容,
-                    fontSize,
-                    gap: textGap
-                });
-
-                const div = document.createElement("div");
-                div.style.zIndex = "-1";
-                div.style.position = "absolute";
-                div.style.left = 0;
-                div.style.top = 0;
-                div.style.width = "100%";
-                div.style.height = "100%";
-                div.style.background = `url("${imgURL}")`;
-                div.style.opacity = "0.8";
-
-                this.div = div;
-                this.appendChild(this.div);
             }
         }
 
