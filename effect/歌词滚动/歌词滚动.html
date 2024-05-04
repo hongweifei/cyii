@@ -24,15 +24,34 @@
             align-items: center;
         }
 
+        a {
+            color: white;
+            text-decoration: none;
+        }
+        a:hover {
+            cursor: pointer;
+            color: blue;
+        }
+
         .audio {
-            margin-top: 3em;
+            margin-top: 5vh;
         }
 
         .container {
             width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .list-song {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            text-align: left;
         }
 
         .list-lrc {
+            flex: 1;
             list-style: none;
 
             overflow: auto;
@@ -73,74 +92,132 @@
 </head>
 <body>
     <div class="container">
-        <ul class="list-lrc">
-        </ul>
+        <div class="panel">
+            <ul class="list-song">
+                <li><a href="#忘了你忘了我" onclick="切歌('忘了你忘了我')">忘了你忘了我</a></li>
+                <li><a href="#不浪漫罪名" onclick="切歌('不浪漫罪名')">不浪漫罪名</a></li>
+            </ul>
+        </div>
     </div>
-    <audio class="audio" src="忘了你忘了我.mp3" controls></audio>
+    <audio id="audio" class="audio" src="忘了你忘了我.mp3" controls></audio>
 
     <script>
-        (async function() {
-            const response = await fetch("./忘了你忘了我.lrc");
-            const lrc = await response.text();
-            console.log(lrc);
+        function createDynamicLRCList(audioElement, lrcText) {
 
-            const lrcList = lrc.split("\n").map(item => {
+            /**
+             * 解析歌词
+             * @param {string} lrc
+             * @returns {Array<{time: number, text: string}>}
+             */
+            function parseLRC(lrc) {
+                return lrc.split("\n").map(item => {
                 const [timeString, text] = item.split("]");
                 const [minute, second] = timeString.slice(1).split(":");
                 const time = parseInt(minute) * 60 + parseInt(second);
-                return {
-                    time,
-                    text: text.trim()
-                };
-            });
+                    return {
+                        time,
+                        text: text.trim()
+                    };
+                });
+            }
 
-            /** @type {HTMLAudioElement} */
-            const audioElement = document.querySelector(".audio");
-            /** @type {HTMLUListElement} */
-            const lrcListElement = document.querySelector(".list-lrc");
+            /**
+             * 寻找当前播放时间对应的歌词索引
+             * @param {Array<{time: number, text: string}>} lrcList
+             * @param {number} time
+             * @returns {number}
+             */
+            function findIndex(lrcList, time) {
+                for (let i = 0; i < lrcList.length; i++) {
+                    const item = lrcList[i];
+                    // 出现的第一个时间大于当前时间，返回上一个索引
+                    if (time < item.time) {
+                        return i - 1;
+                    }
+                }
+                return -1;
+            }
+
+            /**
+             * 滚动歌词列表
+             * @param {HTMLUListElement} listElement
+             * @param {number} itemIndex
+             */
+            function scrollList(listElement, itemIndex) {
+                const li = listElement.querySelector(".active");
+                if (li) {
+                    li.classList.remove("active");
+                }
+                if (itemIndex < 0) {
+                    listElement.scrollBy(0, 0);
+                    return;
+                }
+                const currentElement = listElement.children[itemIndex];
+                currentElement.classList.add("active");
+                const listRectangle = listElement.getBoundingClientRect();
+                const itemRectangle = currentElement.getBoundingClientRect();
+                const offset = itemRectangle.top - listRectangle.top - listRectangle.height / 2.5;
+                listElement.scrollBy(0, offset);
+            }
+
+            const lrcList = parseLRC(lrcText);
+            const doms = {
+                /** @type {HTMLAudioElement} */
+                audioElement,
+                /** @type {HTMLUListElement} */
+                lrcListElement: (function(){
+                    const list = document.createElement("ul");
+                    list.classList.add("list-lrc");
+                    return list;
+                })(),
+            }
             for(const item of lrcList) {
                 const li = document.createElement("li");
                 li.className = "list-item";
                 li.textContent = item.text;
-                lrcListElement.appendChild(li);
+                doms.lrcListElement.appendChild(li);
             }
-            const lrcListItemElements = lrcListElement.children;
-            let currentIndex = 0;
-            audioElement.addEventListener("timeupdate", () => {
-                const currentTime = audioElement.currentTime;
-                for (let i = 0; i < lrcList.length - 1; i++) {
-                    const item1 = lrcList[i];
-                    const item2 = lrcList[i + 1];
 
-                    if (item1.time <= currentTime && currentTime < item2.time) {
-                        currentIndex = i;
-                        break;
-                    } else if (currentTime >= item2.time) {
-                        currentIndex = i + 1;
-                    }
-                }
-                // 清除 active
-                for(let i = 0; i < lrcList.length; i++) {
-                    if (i === currentIndex) {
-                        continue;
-                    }
-                    if (lrcListItemElements[i].classList.contains("active")) {
-                        lrcListItemElements[i].classList.remove("active");
-                    }
-                }
-
-                let currentElement = lrcListItemElements[currentIndex];
-                if (currentElement.classList.contains("active")) {
+            let currentIndex = -1;
+            doms.audioElement.ontimeupdate = (e) => {
+                /** @type {HTMLAudioElement} */
+                const audioElement = e.target;
+                if (audioElement.paused) {
                     return;
                 }
-                currentElement.classList.add("active");
+                const currentTime = audioElement.currentTime;
+                const index = findIndex(lrcList, currentTime);
+                if (index !== currentIndex) {
+                    currentIndex = index;
+                    scrollList(doms.lrcListElement, currentIndex);
+                }
+            };
 
-                const listRectangle = lrcListElement.getBoundingClientRect();
-                const itemRectangle = currentElement.getBoundingClientRect();
-                const offset = itemRectangle.top - listRectangle.top - lrcListElement.clientHeight / 2.5;
-                // console.log(offset);
-                lrcListElement.scrollBy(0, offset);
-            });
+            doms.lrcListElement.addEventListener("drop", () => {
+
+            })
+
+            return doms.lrcListElement;
+        };
+
+        async function 切歌(name) {
+            const response = await fetch(name + ".lrc");
+            const lrc = await response.text();
+            console.log(lrc);
+            const audioElement = document.querySelector(".audio");
+            audioElement.src = name + ".mp3";
+
+            const containerElement = document.querySelector(".container");
+            let listElement = containerElement.querySelector(".list-lrc");
+            if (listElement) {
+                listElement.remove();
+            }
+            listElement = createDynamicLRCList(audioElement, lrc);
+            containerElement.appendChild(listElement);
+        }
+
+        (async function() {
+            await 切歌("忘了你忘了我");
         })();
     </script>
 </body>
