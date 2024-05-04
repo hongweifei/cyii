@@ -175,6 +175,18 @@
                 const li = document.createElement("li");
                 li.className = "list-item";
                 li.textContent = item.text;
+
+                li.onmouseover = () => {
+                    if (!doms.audioElement.paused) {
+                        li.style.cursor = "pointer";
+                    }
+                }
+                li.onmouseout = () => {
+                    li.style.cursor = "default";
+                }
+                li.onclick = () => {
+                    doms.audioElement.currentTime = item.time;
+                };
                 doms.lrcListElement.appendChild(li);
             }
 
