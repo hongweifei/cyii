@@ -189,39 +189,40 @@ export class EUV {
          * @param { Function } dealF 对大括号内容的处理，处理的结果替换原来的值
          */
         const replaceBraceValue = (element, dealF) => {
+            function* getCodeFromTextContent(textContent) {
+                let startIndex, codeEndIndex;
+                let text = textContent;
+                while((startIndex = text.indexOf("{{")) !== -1) {
+                    codeEndIndex = text.indexOf("}}", startIndex);
+                    if (codeEndIndex === -1) break;
+                    const code = text.substring(startIndex + 2, codeEndIndex).trim();
+                    const textEndIndex = codeEndIndex + 2;
+                    yield {
+                        beforeCode: text.substring(0, startIndex),
+                        code,
+                        afterCode: text.substring(textEndIndex),
+                    };
+                    text = text.substring(textEndIndex);
+                    console.log(text);
+                }
+            }
+
             function dealNode(node) {
                 const str = node.textContent;
-                const textLN1 = str.length - 1;
-                for (let i = 0; i < textLN1; i++) {
-                    const c1 = str[i];
-                    const c2 = str[i + 1];
-                    if (c1 === "{" && c2 === "{") {
-                        const startIndex = i;
-                        i++; // 到 c2 位置
-                        let code = "";
-                        while(true) {
-                            if (++i >= textLN1) { // 到最后一个字符，但至少需要两个}}
-                                break;
-                            }
-                            if (str[i] === "}") {
-                                break;
-                            }
-                            code += str[i];
-                        }
-                        if (++i > textLN1) { // 超出字符串
-                            break;
-                        }
-                        if (str[i] !== "}") {
-                            continue; // 下一个循环
-                        }
-
-                        //遇到 {{ 和 }}，执行 code
-                        const result = dealF(code);
-                        node.textContent =
-                            str.substring(0, startIndex) +
-                            result +
-                            str.substring(i + 1);
-                    }
+                const gen = getCodeFromTextContent(str);
+                let { value, done } = gen.next();
+                if (!done) {
+                    node.textContent = "";
+                }
+                while(!done && value) {
+                    const code = value.code;
+                    const result = dealF(code);
+                    console.log(value);
+                    node.textContent +=
+                        value.beforeCode +
+                        result;
+                    console.log(node.textContent);
+                    ({ value, done } = gen.next());
                 }
             }
 

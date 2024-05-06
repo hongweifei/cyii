@@ -22,6 +22,8 @@
             </div>
         </div>
 
+        <h2>{{ subtitle }} {{ text }} {{ subtitle }}</h2>
+
         <div>
             <p>{{ text }}</p>
             <ul>
@@ -46,6 +48,7 @@
         export const app = new EUV({
             elementSelector: "#app",
             data: {
+                subtitle: "副标题",
                 eShow: true,
                 text: "文本",
                 index: 1,
