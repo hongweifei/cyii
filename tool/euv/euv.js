@@ -200,7 +200,6 @@ export class EUV {
                     yield {
                         beforeCode: text.substring(0, startIndex),
                         code,
-                        afterCode: text.substring(textEndIndex),
                     };
                     text = text.substring(textEndIndex);
                     console.log(text);
