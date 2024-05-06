@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EUV</title>
+</head>
+<body>
+    <div id="app">
+        <p e-show="eShow">
+            {{ text }}
+        </p>
+
+        <div>
+            <h2>数据嵌入测试</h2>
+            <p>被嵌入文本：{{ text }}</p>
+            <div>
+                被嵌入文本：{{ text }}
+                <p e-show="eShow">
+                    被嵌入文本：{{ text }}
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <p>{{ text }}</p>
+            <ul>
+                <li>
+                    index: {{ index }}
+                </li>
+                <li>
+                    {{ dataSource[index].a }}
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <input type="text" e-model:value="text">
+        </div>
+
+        <button @click="change">change</button>
+    </div>
+    <script type="module">
+        import { EUV } from "./euv.js";
+
+        export const app = new EUV({
+            elementSelector: "#app",
+            data: {
+                eShow: true,
+                text: "文本",
+                index: 1,
+                dataSource: [
+                    "1",
+                    {
+                        a: 2
+                    }
+                ],
+            },
+            methods: {
+                change(e) {
+                    // console.log(e);
+                    this.data.eShow = !this.data.eShow;
+                    this.data.text = crypto.randomUUID();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
