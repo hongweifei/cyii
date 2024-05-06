@@ -60,7 +60,7 @@
                 change(e) {
                     // console.log(e);
                     this.data.eShow = !this.data.eShow;
-                    this.data.text = crypto.randomUUID();
+                    this.data.text = new Date().toLocaleDateString();
                 }
             }
         });
