@@ -7,7 +7,7 @@ class EUVElement {
         if (!element) {
             throw new Error("element is null");
         }
-        this.element = element;
+        this.domElement = element;
         this.tagName = element.tagName;
         this.attributes = new Map();
         this.tempDisplay = element.style.display;
@@ -21,12 +21,12 @@ class EUVElement {
             this.attributes.set(a.name, a.value);
         }
         this.innerHTML = element.innerHTML;
-        this.textNodeOriginalContentMap = new Map();
+        this.nodeTextContentMap = new Map();
         for (const node of element.childNodes) {
-            if (node.nodeName !== "#text") {
+            if (node.nodeType !== Node.TEXT_NODE) {
                 continue;
             }
-            this.textNodeOriginalContentMap.set(node, node.textContent);
+            this.nodeTextContentMap.set(node, node.textContent);
         }
 
         this.parentElement = null;
@@ -34,6 +34,10 @@ class EUVElement {
         for(let i = 0; i < element.children.length; i++) {
             this.children[i] = new EUVElement(element.children[i]);
         }
+    }
+
+    getNodeTextContent(node) {
+        return this.nodeTextContentMap.get(node);
     }
 }
 
@@ -45,16 +49,39 @@ export class EUV {
             mounted = () => {},
             data = {},
             methods = {},
+            directives = {}
         } = {}
     ) {
-        const that = this;
-        this.init = false;
-        this.data = {...data};
         if (typeof mounted === "function") {
             this.mounted = mounted;
         } else {
             throw new Error("mounted must be a function");
         }
+        const that = this;
+        this.init = false;
+        this.data = {...data};
+        this.methods = {};
+        // 没得 e-
+        this.directiveMap = new Map();
+        for (let k in directives) {
+            if (directives[k].mounted && typeof directives[k].mounted !== "function") {
+                throw new Error(`directives[${k}].mounted is not a function`);
+            }
+            this.directiveMap.set(k, directives[k]);
+        }
+        this.directive(
+            "show",
+            {
+                updated(element, attributeValue, euvElement) {
+                    const result = that.runExpressionCode(euvElement, attributeValue);
+                    if (result) {
+                        element.style.display = euvElement.tempDisplay ? euvElement.tempDisplay : "block";
+                    } else {
+                        element.style.display = "none";
+                    }
+                }
+            }
+        )
 
         this.dataElementMapping = new Map();
         const dataElementMapping = this.dataElementMapping;
@@ -66,12 +93,12 @@ export class EUV {
                         window.maybeChangeElement &&
                         window.maybeChangeElement instanceof EUVElement
                     ) {
-                        for(const set of dataElementMapping) {
-                            if (set.has(window.maybeChangeElement.parentElement)) {
-                                window.maybeChangeElement = null;
-                                return data[k];
-                            }
-                        }
+                        // for(const set of dataElementMapping) {
+                        //     if (set.has(window.maybeChangeElement.parentElement)) {
+                        //         window.maybeChangeElement = null;
+                        //         return data[k];
+                        //     }
+                        // }
                         // console.log("maybe change element", window.maybeChangeElement);
                         dataElementMapping[k].add(window.maybeChangeElement);
                         window.maybeChangeElement = null;
@@ -94,7 +121,6 @@ export class EUV {
                 }
             });
         }
-        this.methods = {};
         for(const k in methods) {
             Object.defineProperty(this.methods, k, {
                 get() {
@@ -108,8 +134,9 @@ export class EUV {
                 }
             });
         }
-        this.mount(elementSelector);
-        mounted();
+        if (elementSelector) {
+            this.mount(elementSelector);
+        }
     }
 
     /**
@@ -137,17 +164,14 @@ export class EUV {
         };
         initEUVElement(euvElement);
 
-        // 删除DOM元素
-        // this.mountedElement.innerHTML = "";
         // 渲染DOM元素
-        const renderDOMElement = (euvElement, parentElement) => {
+        const renderDOMElement = (euvElement) => {
             for (const e of euvElement.children) {
-                const domElement = this.renderEUVElement(e);
-                parentElement.appendChild(domElement);
-                renderDOMElement(e, domElement);
+                this.renderEUVElement(e);
+                renderDOMElement(e);
             }
         };
-        renderDOMElement(euvElement, this.mountedElement);
+        renderDOMElement(euvElement);
 
         this.init = true;
         if (this.mounted)
@@ -155,7 +179,105 @@ export class EUV {
     }
 
 
+    /**
+     * 指令
+     */
+    directive(
+        name,
+        {
+            mounted = (el, attributeValue) => {},
+            unmount = (el) => {},
+            updated = (el, attributeValue, euvElement) => {}
+        }
+    ) {
+        if (typeof mounted !== "function") {
+            throw new Error("mounted must be a function");
+        }
+        if (typeof unmount !== "function") {
+            throw new Error("unmount must be a function");
+        }
+        if (typeof updated !== "function") {
+            throw new Error("updated must be a function");
+        }
+        const d = {
+            mounted,
+            unmount,
+            updated
+        };
+        this.directiveMap.set(name, d);
+    }
 
+
+    // 运行表达式
+    runExpressionCode(euvElement, 表达式) {
+        window.maybeChangeElement = euvElement;
+        // console.log(euvElement, "run:", 表达式);
+
+        // 获取 argNames
+        const 获取codeArgNames = (str) => {
+            if (!str) {
+                return;
+            }
+            if (str === "in" || str === "of") {
+                return;
+            }
+
+            // 数组或对象
+            let splitCache = str.split("[");
+            if (splitCache.length === 2) {
+                str = splitCache[0];
+                const strK = splitCache[1].split("]")[0];
+                if (this.data[str]) {
+                    const argNames = 获取codeArgNames.bind(this)(strK);
+                    // console.log("strK:", strK);
+                    // console.log("argNames:", argNames);
+                    if (argNames) {
+                        return [str, ...argNames];
+                    } else {
+                        return [str];
+                    }
+                }
+            }
+            // 对象
+            splitCache = str.split(".");
+            if (splitCache.length === 2) {
+                str = splitCache[0];
+                if (this.data[str]) {
+                    return [str];
+                }
+            }
+
+            if (this.data[str] || this.data[str] !== null) {
+                return [str];
+            }
+
+            return;
+        }
+
+        let argNames = new Set();
+        const args = new Set();
+        const keys = 表达式.trim().split(" ");
+        for (const k of keys) {
+            const names = 获取codeArgNames(k);
+            if (!names) continue;
+            for(const n of names) {
+                argNames.add(n);
+            }
+        }
+        argNames.forEach((v) => {
+            args.add(this.data[v]);
+        });
+        // console.log(表达式, keys, args);
+        argNames = [...argNames].join(",");
+        const f = new Function(
+            argNames,
+            `
+                return ${表达式};
+            `
+        );
+        window.maybeChangeElement = null;
+        return f(...args.values());
+    }
 
     /**
      *
@@ -172,15 +294,31 @@ export class EUV {
             return;
         }
 
-        const element = euvElement.element;
-        if (euvElement.element && !euvElement.eventInit) {
+        const domElement = euvElement.domElement;
+        // 初始化 domElement 事件
+        if (euvElement.domElement && !euvElement.eventInit) {
             for (const k of euvElement.eventMethodMapping.keys()) {
                 const methodName = euvElement.eventMethodMapping.get(k);
-                element.addEventListener(k, (e) => {
+                domElement.addEventListener(k, (e) => {
                     this.methods[methodName].bind(this)(e);
                 });
+                domElement.removeAttribute("@" + k);
             }
             euvElement.eventInit = true;
+        }
+        // 初始化指令，完成指令 mounted 动作
+        if (!this.init) {
+            for (const k of this.directiveMap.keys()) {
+                const attributeName = "e-" + k;
+                const attributeValue = domElement.getAttribute(attributeName);
+                if (!attributeValue) {
+                    continue;
+                }
+                const directive = this.directiveMap.get(k);
+                if (directive.mounted) {
+                    directive.mounted(domElement, attributeValue);
+                }
+            }
         }
 
 
@@ -188,7 +326,7 @@ export class EUV {
          * 替换大括号中的内容
          * @param { Function } dealF 对大括号内容的处理，处理的结果替换原来的值
          */
-        const replaceBraceValue = (element, dealF) => {
+        const replaceBraceValue = (domElement, dealF) => {
             function* getCodeFromTextContent(textContent) {
                 let startIndex, codeEndIndex;
                 let text = textContent;
@@ -202,11 +340,11 @@ export class EUV {
                         code,
                     };
                     text = text.substring(textEndIndex);
-                    console.log(text);
+                    // console.log(text);
                 }
             }
 
-            function dealNode(node) {
+            function dealTextNode(node) {
                 const str = node.textContent;
                 const gen = getCodeFromTextContent(str);
                 let { value, done } = gen.next();
@@ -216,101 +354,31 @@ export class EUV {
                 while(!done && value) {
                     const code = value.code;
                     const result = dealF(code);
-                    console.log(value);
+                    // console.log(value);
                     node.textContent +=
                         value.beforeCode +
                         result;
-                    console.log(node.textContent);
+                    // console.log(node.textContent);
                     ({ value, done } = gen.next());
                 }
             }
 
-            for (const node of element.childNodes) {
-                if (node.nodeName !== "#text") {
+            for (const node of domElement.childNodes) {
+                if (node.nodeType !== Node.TEXT_NODE) {
                     continue;
                 }
-                dealNode(node);
+                dealTextNode(node);
             }
         }
 
-        // 运行表达式
-        const runCode = (表达式) => {
-            window.maybeChangeElement = euvElement;
-            // console.log(element, "run:", 表达式);
-
-            // 获取 argNames
-            const 获取codeArgNames = (str) => {
-                if (!str) {
-                    return;
-                }
-                if (str === "in" || str === "of") {
-                    return;
-                }
-
-                // 数组或对象
-                let splitCache = str.split("[");
-                if (splitCache.length === 2) {
-                    str = splitCache[0];
-                    const strK = splitCache[1].split("]")[0];
-                    if (this.data[str]) {
-                        const argNames = 获取codeArgNames.bind(this)(strK);
-                        // console.log("strK:", strK);
-                        // console.log("argNames:", argNames);
-                        if (argNames) {
-                            return [str, ...argNames];
-                        } else {
-                            return [str];
-                        }
-                    }
-                }
-                // 对象
-                splitCache = str.split(".");
-                if (splitCache.length === 2) {
-                    str = splitCache[0];
-                    if (this.data[str]) {
-                        return [str];
-                    }
-                }
-
-                if (this.data[str] || this.data[str] !== null) {
-                    return [str];
-                }
-
-                return;
-            }
-
-            let argNames = new Set();
-            const args = new Set();
-            const keys = 表达式.trim().split(" ");
-            for (const k of keys) {
-                const names = 获取codeArgNames(k);
-                if (!names) continue;
-                for(const n of names) {
-                    argNames.add(n);
-                }
-            }
-            argNames.forEach((v) => {
-                args.add(this.data[v]);
-            });
-            // console.log(表达式, keys, args);
-            argNames = [...argNames].join(",");
-            const f = new Function(
-                argNames,
-                `
-                    return ${表达式};
-                `
-            );
-            window.maybeChangeElement = null;
-            return f(...args.values());
-        }
-
+        // 数据双向绑定
         const attributes = euvElement.attributes;
         for (const [name, a] of attributes) {
             // :attribute
             if (name[0] === ':') {
-                const result = runCode(a);
+                const result = this.runExpressionCode(euvElement, a);
                 const originalAttributeName = name.substring(1);
-                element.setAttribute(originalAttributeName, result);
+                domElement.setAttribute(originalAttributeName, result);
             }
             // e-model
             if (name.startsWith("e-model")) {
@@ -321,13 +389,13 @@ export class EUV {
                 if (!this.data[a]) {
                     continue;
                 }
-                element.setAttribute(bindingAttribute, this.data[a]);
-                if (element[bindingAttribute] !== undefined) {
-                    element[bindingAttribute] = this.data[a];
+                domElement.setAttribute(bindingAttribute, this.data[a]);
+                if (domElement[bindingAttribute] !== undefined) {
+                    domElement[bindingAttribute] = this.data[a];
                 }
                 const observerName = `${bindingAttribute}ChangeObserver`;
-                if (!element[observerName]) {
-                    element[observerName] = new MutationObserver((records) => {
+                if (!domElement[observerName]) {
+                    domElement[observerName] = new MutationObserver((records) => {
                         for (const r of records) {
                             // console.log(r);
                             const newValue = r.target.getAttribute(r.attributeName);
@@ -336,46 +404,50 @@ export class EUV {
                             }
                         }
                     });
-                    element[observerName].observe(element, {
+                    domElement[observerName].observe(domElement, {
                         attributes: true,
                     });
                     const 修改属性值 = () => {
-                        element.setAttribute(bindingAttribute, element.value);
+                        domElement.setAttribute(bindingAttribute, domElement.value);
                     };
-                    element.onchange = 修改属性值
-                    element.oninput = 修改属性值;
+                    domElement.onchange = 修改属性值
+                    domElement.oninput = 修改属性值;
                     this.dataElementMapping[a].add(euvElement);
                 }
             }
         }
 
-        // e-show
-        const eShow = element.getAttribute("e-show");
-        if (eShow) {
-            const result = runCode(eShow);
-            if (result) {
-                element.style.display = euvElement.tempDisplay ? euvElement.tempDisplay : "block";
-            } else {
-                element.style.display = "none";
-            }
-        }
-
         // {{}}
-        for (const node of element.childNodes) {
-            if (node.nodeName !== "#text") {
+        // 还原 textNode 的内容
+        for (const node of domElement.childNodes) {
+            if (node.nodeType !== Node.TEXT_NODE) {
                 continue;
             }
-            const textContent = euvElement.textNodeOriginalContentMap.get(node);
+            const textContent = euvElement.getNodeTextContent(node);
             if (textContent) {
                 node.textContent = textContent;
             }
         }
-        replaceBraceValue(element, (code) => {
-            return runCode(code);
+        replaceBraceValue(domElement, (code) => {
+            return this.runExpressionCode(euvElement, code);
         });
 
-        euvElement.element = element;
-        return euvElement.element;
+
+        // 指令 updated
+        for (const k of this.directiveMap.keys()) {
+            const attributeName = "e-" + k;
+            const attributeValue = domElement.getAttribute(attributeName);
+            if (!attributeValue) {
+                continue;
+            }
+            const directive = this.directiveMap.get(k);
+            if (directive.updated) {
+                directive.updated(domElement, attributeValue, euvElement);
+            }
+        }
+
+        euvElement.domElement = domElement;
+        return euvElement.domElement;
     }
 }
 

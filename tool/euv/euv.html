@@ -22,7 +22,8 @@
             </div>
         </div>
 
-        <h2>{{ subtitle }} {{ text }} {{ subtitle }}</h2>
+        <h2>{{ subtitle }} {{ text }}</h2>
+        <p>I am {{ name.last }}·{{ name.first }}</p>
 
         <div>
             <p>{{ text }}</p>
@@ -36,11 +37,27 @@
             </ul>
         </div>
 
-        <div>
-            <input type="text" e-model:value="text">
-        </div>
+        <form @submit="change">
+            <label for="">
+                subtitle:
+                <input type="text" e-model:value="subtitle">
+            </label>
+            <br/>
+            <label for="">
+                text:
+                <input type="text" e-model:value="text">
+            </label>
+            <br/>
 
-        <button @click="change">change</button>
+            <select name="" id="" @change="select">
+                <option value="">please choose one</option>
+                <option value="eShow">eShow</option>
+                <option value="subtitle">subtitle</option>
+                <option value="text">text</option>
+            </select>
+            <button>change</button>
+        </form>
+
     </div>
     <script type="module">
         import { EUV } from "./euv.js";
@@ -48,8 +65,9 @@
         export const app = new EUV({
             elementSelector: "#app",
             data: {
-                subtitle: "副标题",
+                selectValue: "",
                 eShow: true,
+                subtitle: "副标题",
                 text: "文本",
                 index: 1,
                 dataSource: [
@@ -58,12 +76,28 @@
                         a: 2
                     }
                 ],
+                name: {
+                    first: "AA",
+                    last: "BB"
+                }
             },
             methods: {
+                select(e) {
+                    this.data.selectValue = e.target.value;
+                },
+
                 change(e) {
-                    // console.log(e);
-                    this.data.eShow = !this.data.eShow;
-                    this.data.text = new Date().toLocaleDateString();
+                    e.preventDefault();
+                    if (
+                        this.data[this.data.selectValue] === undefined || this.data[this.data.selectValue] === null
+                    ) {
+                        return;
+                    }
+                    if (typeof this.data[this.data.selectValue] === "boolean") {
+                        this.data[this.data.selectValue] = !this.data[this.data.selectValue];
+                        return;
+                    }
+                    this.data[this.data.selectValue] = new Date().getTime();
                 }
             }
         });
