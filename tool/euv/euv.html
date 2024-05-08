@@ -4,9 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EUV</title>
+
+    <style>
+        a {
+            --color-underline: blue;
+            color: var(--color-underline);
+            background: linear-gradient(to right, var(--color-underline), var(--color-underline)) no-repeat;
+            background-position: left bottom;
+            background-size: 0px 2px;
+            transition: .3s;
+            text-decoration: none;
+            /* text-underline-offset: 0.2em; */
+        }
+        a:hover {
+            background-size: 100% 2px;
+            text-decoration: none !important;
+        }
+
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 1em 2em;
+        }
+
+    </style>
 </head>
 <body>
     <div id="app">
+        <p>
+            <a :href="giteeURL" target="_blank">gitee下载euv</a>
+        </p>
+        <p>
+            <a :href="npmURL" target="_blank">npm下载euv</a>
+        </p>
+
         <p e-show="eShow">
             {{ text }}
         </p>
@@ -24,6 +55,7 @@
 
         <h2>{{ subtitle }} {{ text }}</h2>
         <p>I am {{ name.last }}·{{ name.first }}</p>
+        <p>{{ fullName }}</p>
 
         <div>
             <p>{{ text }}</p>
@@ -40,7 +72,7 @@
         <form @submit="change">
             <label for="">
                 subtitle:
-                <input type="text" e-model:value="subtitle">
+                <input ref="input-subtitle" type="text" e-model:value="subtitle">
             </label>
             <br/>
             <label for="">
@@ -59,12 +91,23 @@
         </form>
 
     </div>
-    <script type="module">
-        import { EUV } from "./euv.js";
-
-        export const app = new EUV({
+    <script src="euv.umd.js"></script>
+    <script>
+        const { createAPP } = EUV;
+        const app = createAPP({
             elementSelector: "#app",
+
+            mounted() {
+                /** @type { HTMLInputElement } */
+                const subtitleInput = this.$refs["input-subtitle"];
+                console.log(subtitleInput);
+                subtitleInput.value = "hello world";
+            },
+
             data: {
+                giteeURL: "https://gitee.com/flown/euv",
+                npmURL: "https://www.npmjs.com/package/@hongweifei/euv",
+
                 selectValue: "",
                 eShow: true,
                 subtitle: "副标题",
@@ -79,6 +122,11 @@
                 name: {
                     first: "AA",
                     last: "BB"
+                }
+            },
+            computed: {
+                fullName() {
+                    return this.data.name.first + this.data.name.last;
                 }
             },
             methods: {
