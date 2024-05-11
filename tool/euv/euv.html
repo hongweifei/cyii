@@ -35,7 +35,7 @@
             <a :href="giteeURL" target="_blank">gitee下载euv</a>
         </p>
         <p>
-            <a :href="npmURL" target="_blank">npm下载euv</a>
+            <a e-bind:href="npmURL" target="_blank">npm下载euv</a>
         </p>
 
         <p e-show="eShow">
@@ -58,13 +58,20 @@
         <p>{{ fullName }}</p>
 
         <div>
+            <p>data source</p>
+            <div>
+                <p>{{ getDataSource[1].a[1] }}</p>
+            </div>
+        </div>
+
+        <div>
             <p>{{ text }}</p>
             <ul>
                 <li>
                     index: {{ index }}
                 </li>
                 <li>
-                    {{ dataSource[index].a }}
+                    {{ dataSource[1].a[index].b[dataSource[index].b.c[0]] }}
                 </li>
             </ul>
         </div>
@@ -81,7 +88,7 @@
             </label>
             <br/>
 
-            <select name="" id="" @change="select">
+            <select name="" id="" e-model:value="selectValue">
                 <option value="">please choose one</option>
                 <option value="eShow">eShow</option>
                 <option value="subtitle">subtitle</option>
@@ -90,11 +97,74 @@
             <button>change</button>
         </form>
 
+        <div>
+            <h2>购物</h2>
+            <div>
+                <ul>
+                    <li>
+                        <h4>{{ goodsDataSource[0].name }}</h4>
+                        <p>
+                            价格：
+                            <span>{{ goodsDataSource[0].price }}</span>
+                            元
+                        </p>
+                        <p>{{ goodsDataSource[0].choose }}</p>
+                        <button @click="添加goods" data-index="0">+</button>
+                        <button @click="减少goods" data-index="0">-</button>
+                    </li>
+
+                    <li>
+                        <h4>{{ goodsDataSource[1].name }}</h4>
+                        <p>
+                            价格：
+                            <span>{{ goodsDataSource[1].price }}</span>
+                            元
+                        </p>
+                        <p>{{ goodsDataSource[1].choose }}</p>
+                        <button @click="添加goods" data-index="1">+</button>
+                        <button @click="减少goods" data-index="1">-</button>
+                    </li>
+
+                    <li>
+                        <h4>{{ goodsDataSource[2].name }}</h4>
+                        <p>
+                            价格：
+                            <span>{{ goodsDataSource[2].price }}</span>
+                            元
+                        </p>
+                        <p>{{ goodsDataSource[2].choose }}</p>
+                        <button @click="添加goods" data-index="2">+</button>
+                        <button @click="减少goods" data-index="2">-</button>
+                    </li>
+
+                    <li>
+                        <h4>{{ goodsDataSource[3].name }}</h4>
+                        <p>
+                            价格：
+                            <span>{{ goodsDataSource[3].price }}</span>
+                            元
+                        </p>
+                        <p>{{ goodsDataSource[3].choose }}</p>
+                        <button @click="添加goods" data-index="3">+</button>
+                        <button @click="减少goods" data-index="3">-</button>
+                    </li>
+                </ul>
+
+                <p>
+                    total count:
+                    <span>{{ totalCount }}</span>
+                </p>
+                <p>
+                    total price:
+                    <span>{{ totalPrice }}</span>
+                </p>
+            </div>
+        </div>
+
     </div>
-    <script src="euv.umd.js"></script>
+    <script src="euv.global.production.js"></script>
     <script>
-        const { createAPP } = EUV;
-        const app = createAPP({
+        new EUV({
             elementSelector: "#app",
 
             mounted() {
@@ -116,29 +186,77 @@
                 dataSource: [
                     "1",
                     {
-                        a: 2
-                    }
+                        a: [
+                            { b: "2" },
+                            { b: ["3", "4", "5"] },
+                            { b: "4" }
+                        ],
+                        b: {
+                            c: [1]
+                        }
+                    },
                 ],
                 name: {
                     first: "AA",
                     last: "BB"
-                }
+                },
+
+                goodsDataSource: [
+                    {
+                        name: "iphone",
+                        price: 1000,
+                        choose: 0,
+                    },
+                    {
+                        name: "ipad",
+                        price: 2000,
+                        choose: 2,
+                    },
+                    {
+                        name: "MacBook",
+                        price: 3000,
+                        choose: 0,
+                    },
+                    {
+                        name: "iMac",
+                        price: 4000,
+                        choose: 4,
+                    },
+                ],
             },
             computed: {
                 fullName() {
                     return this.data.name.first + this.data.name.last;
+                },
+
+                getDataSource() {
+                    return  this.data.dataSource;
+                },
+
+
+                totalCount() {
+                    let sum = 0;
+                    for (const g of this.data.goodsDataSource) {
+                        sum += g.choose;
+                    }
+                    return sum;
+                },
+                totalPrice() {
+                    let sum = 0;
+                    for (const g of this.data.goodsDataSource) {
+                        sum += g.price * g.choose;
+                    }
+                    return sum;
                 }
             },
             methods: {
-                select(e) {
-                    this.data.selectValue = e.target.value;
-                },
-
                 change(e) {
                     e.preventDefault();
                     if (
-                        this.data[this.data.selectValue] === undefined || this.data[this.data.selectValue] === null
+                        this.data[this.data.selectValue] === undefined ||
+                        this.data[this.data.selectValue] === null
                     ) {
+                        console.log(`[selectValue] is ${this.data.selectValue}`);
                         return;
                     }
                     if (typeof this.data[this.data.selectValue] === "boolean") {
@@ -146,6 +264,21 @@
                         return;
                     }
                     this.data[this.data.selectValue] = new Date().getTime();
+                },
+
+                添加goods(e) {
+                    const index = e.target.dataset.index;
+                    this.data.goodsDataSource[index].choose++;
+                    console.log(this.data.goodsDataSource[index], "choose + 1");
+                },
+
+                减少goods(e) {
+                    const index = e.target.dataset.index;
+                    this.data.goodsDataSource[index].choose--;
+                    if (this.data.goodsDataSource[index].choose < 0) {
+                        this.data.goodsDataSource[index].choose = 0;
+                    }
+                    console.log(this.data.goodsDataSource[index], "choose - 1");
                 }
             }
         });
