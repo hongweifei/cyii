@@ -1,4 +1,17 @@
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+}
+
 a {
     --color-underline: blue;
     color: var(--color-underline);
@@ -12,5 +25,11 @@ a {
 a:hover {
     background-size: 100% 2px;
     text-decoration: none !important;
+}
+
+
+.copyright {
+    text-align: center;
+    color: black;
 }
 
