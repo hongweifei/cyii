@@ -1,198 +1,202 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
     <title>cyii.site</title>
 
     <style>
-        * {
-            color: lawngreen;
+      * {
+        color: lawngreen;
+      }
+
+      a {
+        --color-underline: cyan;
+        color: cyan;
+      }
+
+      li::marker {
+        color: yellow;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        min-width: 20rem;
+        display: flex;
+        flex-direction: column;
+        background: url("波奇-流汗.jpeg") no-repeat left top;
+        background-color: beige;
+        background-size: 100% 100%;
+        background-attachment: fixed;
+        background-blend-mode: multiply;
+      }
+
+      header {
+        z-index: 99;
+        position: sticky;
+        top: 0;
+      }
+
+      nav {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0px 1px 5px 2px rgba(255, 192, 203, 0.5);
+
+        box-sizing: border-box;
+        padding: 1em;
+      }
+
+      main {
+        position: relative;
+        flex: 1;
+        box-sizing: border-box;
+        padding: 2em;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      section {
+        width: fit-content;
+        min-width: 18rem;
+        padding: 1em;
+      }
+
+      .copyright {
+        text-align: center;
+        color: white;
+      }
+
+      .波奇 {
+        --width: 20rem;
+        --height: 15rem;
+
+        width: var(--width);
+        height: var(--height);
+        background: url("波奇-抖.gif"), pink;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-blend-mode: color-burn;
+        mix-blend-mode: multiply;
+        filter: contrast(5);
+      }
+
+      .青蛙 {
+        --size: 10rem;
+
+        display: none;
+        margin-top: 2em;
+        width: var(--size);
+        height: var(--size);
+        background: url("青蛙.gif"), skyblue;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-blend-mode: lighten;
+        mix-blend-mode: multiply;
+        filter: contrast(5);
+        /* animation: 青蛙抖动 30ms infinite ease-in-out; */
+      }
+      .青蛙::after {
+        content: " ";
+        display: block;
+        width: var(--size);
+        height: var(--size);
+        background: url("青蛙.gif"), greenyellow;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        mix-blend-mode: multiply;
+        transform:
+          translate(calc(-1 * var(--size) / 30), calc(-1 * var(--size) / 30)),
+          rotate(var(--size));
+      }
+      @keyframes 青蛙抖动 {
+        50% {
+          transform: translate(
+            calc(var(--size) / 30),
+            calc(-1 * var(--size) / 30)
+          );
         }
-
-
-        a {
-            --color-underline: cyan;
-            color: cyan;
+        100% {
+          transform: translate(
+            calc(-1 * var(--size) / 30),
+            calc(var(--size) / 30)
+          );
         }
-
-
-        li::marker {
-            color: yellow;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-        }
-        body {
-            margin: 0;
-            min-width: 20rem;
-            display: flex;
-            flex-direction: column;
-            background: url("波奇-流汗.jpeg") no-repeat left top;
-            background-color: beige;
-            background-size: 100% 100%;
-            background-attachment: fixed;
-            background-blend-mode: multiply;
-        }
-
-        header {
-            z-index: 99;
-            position: sticky;
-            top: 0;
-        }
-
-        nav {
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0px 1px 5px 2px rgba(255, 192, 203, 0.5);
-
-            box-sizing: border-box;
-            padding: 1em;
-        }
-
-        main {
-            position: relative;
-            flex: 1;
-            box-sizing: border-box;
-            padding: 2em;
-
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        section {
-            width: fit-content;
-            min-width: 18rem;
-        }
-
-        .copyright {
-            text-align: center;
-            color: white;
-        }
-
-
-        .波奇 {
-            --width: 20rem;
-            --height: 15rem;
-
-            width: var(--width);
-            height: var(--height);
-            background: url("波奇-抖.gif"), pink;
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
-            background-blend-mode: color-burn;
-            mix-blend-mode: multiply;
-            filter: contrast(5);
-        }
-
+      }
+      @media (min-width: 30rem) {
         .青蛙 {
-            --size: 10rem;
-
-            display: none;
-            margin-top: 2em;
-            width: var(--size);
-            height: var(--size);
-            background: url("青蛙.gif"), skyblue;
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
-            background-blend-mode: lighten;
-            mix-blend-mode: multiply;
-            filter: contrast(5);
-            /* animation: 青蛙抖动 30ms infinite ease-in-out; */
+          display: block;
+          margin-top: 0;
+          position: absolute;
+          right: 10%;
+          top: 5%;
         }
-        .青蛙::after {
-            content: " ";
-            display: block;
-            width: var(--size);
-            height: var(--size);
-            background: url("青蛙.gif"), greenyellow;
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
-            mix-blend-mode: multiply;
-            transform: translate(calc(-1 * var(--size) / 30), calc(-1 * var(--size) / 30)), rotate(var(--size));
-        }
-        @keyframes 青蛙抖动 {
-            50% {
-                transform: translate(calc(var(--size) / 30), calc(-1 * var(--size) / 30));
-            }
-            100% {
-                transform: translate(calc(-1 * var(--size) / 30), calc(var(--size) / 30));
-            }
-        }
-        @media (min-width: 30rem) {
-            .青蛙 {
-                display: block;
-                margin-top: 0;
-                position: absolute;
-                right: 10%;
-                top: 5%;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header>
-        <nav>
-            <h1 style="color: black;">
-                cyii.site
-            </h1>
-        </nav>
+      <nav>
+        <h1 style="color: black">cyii.site</h1>
+      </nav>
     </header>
 
     <main>
-        <p>
-            欢迎访问我的个人站点
-            <a href="http://cyue.net" target="_blank">cyue.net</a>
-        </p>
+      <p>
+        欢迎访问我的个人站点
+        <a href="http://cyue.net" target="_blank">cyue.net</a>
+      </p>
 
-        <section>
-            <h3>组件相关</h3>
-            <ul>
-                <li>
-                    <a href="component/水印.html">水印</a>
-                </li>
-            </ul>
-        </section>
+      <section>
+        <h3>组件相关</h3>
+        <ul>
+          <li>
+            <a href="component/水印.html">水印</a>
+          </li>
+        </ul>
+      </section>
 
-        <section>
-            <h3>效果相关</h3>
-            <ul>
-                <li>
-                    <a href="effect/歌词滚动/歌词滚动.html" target="_blank">歌词滚动</a>
-                </li>
-            </ul>
-        </section>
+      <section>
+        <h3>效果相关</h3>
+        <ul>
+          <li>
+            <a href="effect/歌词滚动/歌词滚动.html" target="_blank">歌词滚动</a>
+          </li>
+        </ul>
+      </section>
 
-        <section>
-            <h3>工具类</h3>
-            <ul>
-                <li>
-                    <a href="tool/euv/euv.html">EUV</a>
-                </li>
-                <li>
-                    <a href="tool/calculator/calculator.html">计算器</a>
-                </li>
-            </ul>
-        </section>
+      <section>
+        <h3>工具类</h3>
+        <ul>
+          <li>
+            <a href="tool/euv/euv.html">EUV</a>
+          </li>
+          <li>
+            <a href="tool/calculator/calculator.html">计算器</a>
+          </li>
+          <li>
+            <a href="tool/blend/blend.html">图片混合预览工具</a>
+          </li>
+        </ul>
+      </section>
 
-        <section>
-            <div class="波奇"></div>
-            <div class="青蛙"></div>
-        </section>
+      <section>
+        <div class="波奇"></div>
+        <div class="青蛙"></div>
+      </section>
     </main>
 
     <footer>
-        <hr/>
-        <p class="copyright">
-            &copy; 2024 尘跃
-        </p>
+      <hr />
+      <p class="copyright">&copy; 2024 尘跃</p>
     </footer>
-</body>
+  </body>
 </html>
-

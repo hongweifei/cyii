@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>可自定义图片的多层叠加文字增强工具</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+        color: #333;
+        line-height: 1.6;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 2.8rem;
+        background: linear-gradient(45deg, #1a2a6c, #b21f1f);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      ul {
+        padding-left: 2em;
+      }
+
+      .subtitle {
+        color: #7f8c8d;
+        font-size: 1.2rem;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .upload-section {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+      }
+
+      .upload-section h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+      }
+
+      .upload-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .upload-options {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .upload-option {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px dashed #ced4da;
+      }
+
+      .upload-option h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+      }
+
+      .upload-option h3 i {
+        margin-right: 10px;
+        color: #3498db;
+      }
+
+      .file-upload {
+        position: relative;
+        margin-bottom: 15px;
+      }
+
+      .file-upload input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .file-upload-label {
+        display: block;
+        padding: 15px;
+        background: #3498db;
+        color: white;
+        text-align: center;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .file-upload-label:hover {
+        background: #2980b9;
+      }
+
+      .url-upload {
+        display: flex;
+        gap: 10px;
+      }
+
+      .url-upload input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+      }
+
+      .url-upload button {
+        padding: 12px 20px;
+        background: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .url-upload button:hover {
+        background: #27ae60;
+      }
+
+      .sample-images {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .sample-image {
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .sample-image:hover {
+        transform: scale(1.05);
+      }
+
+      .sample-image img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+
+      @media (max-width: 1100px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .image-box {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .image-box h2 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+      }
+
+      .image-container {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        height: 400px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .image-container.placeholder::before {
+        content: "请上传图片或选择示例图片";
+        color: #6c757d;
+        font-size: 1.2rem;
+      }
+
+      .original-image,
+      .enhanced-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .enhanced-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .controls {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+      }
+
+      .control-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .control-section h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+      }
+
+      .control-section h3 i {
+        margin-right: 10px;
+        color: #3498db;
+      }
+
+      .layers-control {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .layer-control {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+      }
+
+      .layer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .layer-title {
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .remove-layer {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      select,
+      input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        font-size: 1rem;
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .slider-value {
+        min-width: 40px;
+        text-align: center;
+        font-weight: bold;
+        color: #3498db;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #3498db;
+        color: white;
+      }
+
+      .btn-success {
+        background: #2ecc71;
+        color: white;
+      }
+
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .presets {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+      }
+
+      .preset {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .preset:hover {
+        border-color: #3498db;
+        transform: translateY(-3px);
+      }
+
+      .preset.active {
+        border-color: #2ecc71;
+        background: #e8f6f3;
+      }
+
+      .explanation {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .explanation h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+      }
+
+      .explanation p {
+        margin-bottom: 15px;
+      }
+
+      .tips {
+        background: #e8f4fc;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 5px solid #3498db;
+        margin-top: 20px;
+      }
+
+      .tips h3 {
+        color: #2980b9;
+        margin-bottom: 10px;
+      }
+
+      .mode-info {
+        display: inline-block;
+        background: #3498db;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        margin: 0 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>可自定义图片的多层叠加文字增强工具</h1>
+        <p class="subtitle">
+          上传您的图片，使用CSS
+          mix-blend-mode与多层叠加技术增强图片中黑色文字的可读性
+        </p>
+      </header>
+
+      <div class="upload-section">
+        <h2>上传图片</h2>
+        <div class="upload-options">
+          <div class="upload-option">
+            <h3><i>📁</i> 从本地上传</h3>
+            <div class="file-upload">
+              <input type="file" id="fileInput" accept="image/*" />
+              <label for="fileInput" class="file-upload-label"
+                >选择图片文件</label
+              >
+            </div>
+            <p>支持 JPG、PNG、GIF 格式</p>
+          </div>
+
+          <div class="upload-option">
+            <h3><i>🔗</i> 从网络加载</h3>
+            <div class="url-upload">
+              <input type="url" id="urlInput" placeholder="输入图片URL" />
+              <button id="loadUrlBtn">加载图片</button>
+            </div>
+            <p>输入有效的图片URL地址</p>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 20px">或选择示例图片：</h3>
+        <div class="sample-images">
+          <div
+            class="sample-image"
+            data-url="https://picsum.photos/600?random=1"
+          >
+            <img src="https://picsum.photos/600?random=1" alt="示例1" />
+          </div>
+          <div
+            class="sample-image"
+            data-url="https://picsum.photos/600?random=2"
+          >
+            <img src="https://picsum.photos/600?random=2" alt="示例2" />
+          </div>
+          <div
+            class="sample-image"
+            data-url="https://picsum.photos/600?random=3"
+          >
+            <img src="https://picsum.photos/600?random=3" alt="示例3" />
+          </div>
+          <div
+            class="sample-image"
+            data-url="https://picsum.photos/600?random=4"
+          >
+            <img src="https://picsum.photos/600?random=4" alt="示例4" />
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="image-box">
+          <h2>原始图片</h2>
+          <div class="image-container placeholder" id="originalContainer">
+            <!-- 图片将通过JavaScript动态加载 -->
+          </div>
+          <p>原始图片包含黑色文字和复杂背景，文字可读性较差。</p>
+        </div>
+
+        <div class="image-box">
+          <h2>增强效果</h2>
+          <div class="image-container placeholder" id="enhancedContainer">
+            <div class="enhanced-container">
+              <!-- 图片和图层将通过JavaScript动态加载 -->
+            </div>
+          </div>
+          <p>应用多层叠加效果后，黑色文字更加清晰，背景干扰减少。</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-section">
+          <h3><i>➕</i> 图层控制</h3>
+          <div class="layers-control" id="layersControl">
+            <!-- 图层控制将通过JavaScript动态生成 -->
+          </div>
+          <div class="buttons" style="margin-top: 15px">
+            <button class="btn-success" id="addLayerBtn">添加新图层</button>
+            <button class="btn-danger" id="resetLayersBtn">重置所有图层</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3><i>⚡</i> 预设效果</h3>
+          <div class="presets" id="presets">
+            <div class="preset" data-preset="difference">差异模式增强</div>
+            <div class="preset" data-preset="multiply">正片叠底增强</div>
+            <div class="preset" data-preset="screen">滤色模式增强</div>
+            <div class="preset" data-preset="overlay">叠加模式增强</div>
+            <div class="preset active" data-preset="custom">自定义多层</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="explanation">
+        <h2>技术原理</h2>
+        <p>
+          这个工具使用CSS的<code>mix-blend-mode</code>属性创建多层叠加效果，以增强图片中黑色文字的可读性。
+        </p>
+
+        <p>
+          <span class="mode-info">mix-blend-mode</span
+          >属性定义了元素内容应如何与其父元素和背景混合。
+        </p>
+
+        <p>通过叠加多个具有不同混合模式和颜色的图层，我们可以：</p>
+        <ul>
+          <li>增强文字与背景的对比度</li>
+          <li>减少背景图案对文字的干扰</li>
+          <li>突出显示文字内容</li>
+          <li>创建自定义的视觉效果</li>
+        </ul>
+
+        <div class="tips">
+          <h3>使用技巧</h3>
+          <p>
+            1.
+            对于黑色文字，尝试使用<strong>difference</strong>模式配合白色叠加层。
+          </p>
+          <p>2. 添加多个图层可以创建更复杂的效果，但要注意性能影响。</p>
+          <p>3. 使用较低的不透明度可以创建更微妙的效果。</p>
+          <p>4. 尝试不同的颜色组合，找到最适合您图像的效果。</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 初始图层配置
+        let layers = [
+          {
+            id: "layer1",
+            blendMode: "difference",
+            color: "#ffffff",
+            opacity: 70,
+            visible: true,
+          },
+          {
+            id: "layer2",
+            blendMode: "overlay",
+            color: "#000000",
+            opacity: 20,
+            visible: true,
+          },
+        ];
+
+        // DOM元素
+        const fileInput = document.getElementById("fileInput");
+        const urlInput = document.getElementById("urlInput");
+        const loadUrlBtn = document.getElementById("loadUrlBtn");
+        const sampleImages = document.querySelectorAll(".sample-image");
+        const originalContainer = document.getElementById("originalContainer");
+        const enhancedContainer = document.getElementById("enhancedContainer");
+        const layersControl = document.getElementById("layersControl");
+        const addLayerBtn = document.getElementById("addLayerBtn");
+        const resetLayersBtn = document.getElementById("resetLayersBtn");
+        const presets = document.getElementById("presets");
+
+        // 当前图片URL
+        let currentImageUrl =
+          "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80";
+
+        // 初始化
+        loadImage(currentImageUrl);
+        renderLayers();
+
+        // 文件上传事件
+        fileInput.addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              currentImageUrl = event.target.result;
+              loadImage(currentImageUrl);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+
+        // URL加载事件
+        loadUrlBtn.addEventListener("click", function () {
+          const url = urlInput.value.trim();
+          if (url) {
+            currentImageUrl = url;
+            loadImage(currentImageUrl);
+          } else {
+            alert("请输入有效的图片URL");
+          }
+        });
+
+        // 示例图片点击事件
+        sampleImages.forEach((sample) => {
+          sample.addEventListener("click", function () {
+            currentImageUrl = this.dataset.url;
+            loadImage(currentImageUrl);
+          });
+        });
+
+        // 加载图片函数
+        function loadImage(url) {
+          const img = new Image();
+          img.onload = function () {
+            // 更新原始图片容器
+            originalContainer.innerHTML = "";
+            originalContainer.classList.remove("placeholder");
+            const originalImg = document.createElement("img");
+            originalImg.src = url;
+            originalImg.className = "original-image";
+            originalContainer.appendChild(originalImg);
+
+            // 更新增强图片容器
+            enhancedContainer.innerHTML = "";
+            enhancedContainer.classList.remove("placeholder");
+            const enhancedImgContainer = document.createElement("div");
+            enhancedImgContainer.className = "enhanced-container";
+
+            const enhancedImg = document.createElement("img");
+            enhancedImg.src = url;
+            enhancedImg.className = "enhanced-image";
+            enhancedImgContainer.appendChild(enhancedImg);
+
+            // 添加图层
+            layers.forEach((layer) => {
+              const layerElement = document.createElement("div");
+              layerElement.id = layer.id;
+              layerElement.className = "layer";
+              layerElement.style.mixBlendMode = layer.blendMode;
+              layerElement.style.backgroundColor = layer.color;
+              layerElement.style.opacity = layer.visible
+                ? layer.opacity / 100
+                : 0;
+              enhancedImgContainer.appendChild(layerElement);
+            });
+
+            enhancedContainer.appendChild(enhancedImgContainer);
+          };
+
+          img.onerror = function () {
+            alert("图片加载失败，请检查URL是否正确或尝试其他图片");
+          };
+
+          img.src = url;
+        }
+
+        // 添加新图层
+        addLayerBtn.addEventListener("click", function () {
+          const newId = "layer" + (layers.length + 1);
+          layers.push({
+            id: newId,
+            blendMode: "difference",
+            color: "#ffffff",
+            opacity: 50,
+            visible: true,
+          });
+          renderLayers();
+          updateEnhancedImage();
+        });
+
+        // 重置所有图层
+        resetLayersBtn.addEventListener("click", function () {
+          layers = [
+            {
+              id: "layer1",
+              blendMode: "difference",
+              color: "#ffffff",
+              opacity: 70,
+              visible: true,
+            },
+          ];
+          renderLayers();
+          updateEnhancedImage();
+        });
+
+        // 预设效果
+        presets.addEventListener("click", function (e) {
+          if (e.target.classList.contains("preset")) {
+            // 移除所有active类
+            document
+              .querySelectorAll(".preset")
+              .forEach((p) => p.classList.remove("active"));
+            // 添加active类到当前点击的预设
+            e.target.classList.add("active");
+
+            const preset = e.target.dataset.preset;
+            applyPreset(preset);
+          }
+        });
+
+        // 渲染图层控制
+        function renderLayers() {
+          layersControl.innerHTML = "";
+
+          layers.forEach((layer, index) => {
+            const layerControl = document.createElement("div");
+            layerControl.className = "layer-control";
+            layerControl.innerHTML = `
+                        <div class="layer-header">
+                            <span class="layer-title">${layer.id}</span>
+                            ${index > 0 ? '<button class="remove-layer" data-id="' + layer.id + '">移除</button>' : ""}
+                        </div>
+                        <div class="control-group">
+                            <label>混合模式</label>
+                            <select class="blend-mode" data-id="${layer.id}">
+                                <option value="normal">normal - 正常</option>
+                                <option value="multiply">multiply - 正片叠底</option>
+                                <option value="screen">screen - 滤色</option>
+                                <option value="overlay">overlay - 叠加</option>
+                                <option value="darken">darken - 变暗</option>
+                                <option value="lighten">lighten - 变亮</option>
+                                <option value="color-dodge">color-dodge - 颜色减淡</option>
+                                <option value="color-burn">color-burn - 颜色加深</option>
+                                <option value="hard-light">hard-light - 强光</option>
+                                <option value="soft-light">soft-light - 柔光</option>
+                                <option value="difference">difference - 差异</option>
+                                <option value="exclusion">exclusion - 排除</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>颜色</label>
+                            <input type="color" class="layer-color" data-id="${layer.id}" value="${layer.color}">
+                        </div>
+                        <div class="control-group">
+                            <label>不透明度</label>
+                            <div class="slider-container">
+                                <input type="range" class="layer-opacity" data-id="${layer.id}" min="0" max="100" value="${layer.opacity}">
+                                <span class="slider-value">${layer.opacity}%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>
+                                <input type="checkbox" class="layer-visible" data-id="${layer.id}" ${layer.visible ? "checked" : ""}>
+                                可见
+                            </label>
+                        </div>
+                    `;
+
+            layersControl.appendChild(layerControl);
+
+            // 设置当前值
+            const blendModeSelect = layerControl.querySelector(".blend-mode");
+            blendModeSelect.value = layer.blendMode;
+
+            // 添加事件监听
+            blendModeSelect.addEventListener("change", function () {
+              updateLayerProperty(this.dataset.id, "blendMode", this.value);
+            });
+
+            const colorInput = layerControl.querySelector(".layer-color");
+            colorInput.addEventListener("input", function () {
+              updateLayerProperty(this.dataset.id, "color", this.value);
+            });
+
+            const opacityInput = layerControl.querySelector(".layer-opacity");
+            opacityInput.addEventListener("input", function () {
+              const value = this.value;
+              this.nextElementSibling.textContent = value + "%";
+              updateLayerProperty(this.dataset.id, "opacity", parseInt(value));
+            });
+
+            const visibleInput = layerControl.querySelector(".layer-visible");
+            visibleInput.addEventListener("change", function () {
+              updateLayerProperty(this.dataset.id, "visible", this.checked);
+            });
+
+            const removeBtn = layerControl.querySelector(".remove-layer");
+            if (removeBtn) {
+              removeBtn.addEventListener("click", function () {
+                layers = layers.filter((l) => l.id !== this.dataset.id);
+                renderLayers();
+                updateEnhancedImage();
+              });
+            }
+          });
+        }
+
+        // 更新图层属性
+        function updateLayerProperty(layerId, property, value) {
+          const layer = layers.find((l) => l.id === layerId);
+          if (layer) {
+            layer[property] = value;
+            updateEnhancedImage();
+          }
+        }
+
+        // 更新增强图像
+        function updateEnhancedImage() {
+          layers.forEach((layer) => {
+            const layerElement = document.getElementById(layer.id);
+            if (layerElement) {
+              layerElement.style.mixBlendMode = layer.blendMode;
+              layerElement.style.backgroundColor = layer.color;
+              layerElement.style.opacity = layer.visible
+                ? layer.opacity / 100
+                : 0;
+            }
+          });
+        }
+
+        // 应用预设
+        function applyPreset(preset) {
+          switch (preset) {
+            case "difference":
+              layers = [
+                {
+                  id: "layer1",
+                  blendMode: "difference",
+                  color: "#ffffff",
+                  opacity: 70,
+                  visible: true,
+                },
+              ];
+              break;
+            case "multiply":
+              layers = [
+                {
+                  id: "layer1",
+                  blendMode: "multiply",
+                  color: "#ffffff",
+                  opacity: 50,
+                  visible: true,
+                },
+              ];
+              break;
+            case "screen":
+              layers = [
+                {
+                  id: "layer1",
+                  blendMode: "screen",
+                  color: "#000000",
+                  opacity: 50,
+                  visible: true,
+                },
+              ];
+              break;
+            case "overlay":
+              layers = [
+                {
+                  id: "layer1",
+                  blendMode: "overlay",
+                  color: "#ffffff",
+                  opacity: 60,
+                  visible: true,
+                },
+                {
+                  id: "layer2",
+                  blendMode: "overlay",
+                  color: "#000000",
+                  opacity: 30,
+                  visible: true,
+                },
+              ];
+              break;
+            case "custom":
+              // 保持当前自定义设置
+              return;
+          }
+
+          renderLayers();
+          updateEnhancedImage();
+        }
+      });
+    </script>
+  </body>
+</html>
